@@ -199,11 +199,14 @@ const TS_MAX_SECONDS: i64 = isize::MAX as i64;
 
 const TS_MIN_SECONDS: i64 = -TS_MAX_SECONDS;
 
+// AIX: libc::timespec.tv_nsec is 32-bit c_int on both 32- and 64-bit.
+#[cfg(target_os = "aix")]
+type timespec_tv_nsec_t = libc::c_int;
 // x32 compatibility
 // See https://sourceware.org/bugzilla/show_bug.cgi?id=16437
 #[cfg(all(target_arch = "x86_64", target_pointer_width = "32"))]
 type timespec_tv_nsec_t = i64;
-#[cfg(not(all(target_arch = "x86_64", target_pointer_width = "32")))]
+#[cfg(not(any(target_os = "aix", all(target_arch = "x86_64", target_pointer_width = "32"))))]
 type timespec_tv_nsec_t = libc::c_long;
 
 impl From<timespec> for TimeSpec {
